@@ -79,3 +79,27 @@
   .custom-column .box {
     height: 200px; /* Explicit height for each box */
   }
+  .mapclumn{
+    height: 600px !important;
+  }
+  .no-gap {
+    margin: 0px !important;
+    padding: 0px !important;
+
+  }
+
+  .no-gap .box {
+    margin-bottom: 0 !important;
+  }
+
+  .no-gap .custom-column {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  .no-gap>div {
+    padding: 0 !important;
+}
+.scrollable-column > div {
+  height: 500px;
+  overflow-y: auto;
+}

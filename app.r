@@ -112,47 +112,55 @@ ui <- dashboardPage(
         )
       )
     ),
-    fluidRow(
+fluidRow(
+  column(
+    width = 6, class = "no-gap mapclumn", # Map column remains fixed
+    box(
+      title = "Map", status = "primary", solidHeader = TRUE, width = 12,
+      leafletOutput("map", height = 500)
+    )
+  ),
+  column(
+    width = 6, class = "scrollable-column", # Apply custom class for scrollable behavior
+    div(
+      style = "height: 535px; overflow-y: auto;", # Set height and enable vertical scrolling
       column(
-        width = 6, class = "",
+        width = 12, class = "custom-column no-gap",
         box(
-          title = "Map", status = "primary", solidHeader = TRUE, width = 12,
-          leafletOutput("map")
+          title = "Race", status = "primary", solidHeader = TRUE, width = 4,
+          plotOutput("racePlot")
         ),
+        box(
+          title = "Age Group", status = "primary", solidHeader = TRUE, width = 4,
+          plotOutput("ageGroupPlot")
+        ),
+        box(
+          title = "Occupation", status = "primary", solidHeader = TRUE, width = 4,
+          plotOutput("occupationPlot")
+        )
       ),
       column(
-        width = 6, class = "",
-        column(
-          width = 12, class = "",
-          box(
-            title = "Race", status = "primary", solidHeader = TRUE, width = 4,
-            plotOutput("racePlot")
-          ),
-          box(
-            title = "Age Group", status = "primary", solidHeader = TRUE, width = 4,
-            plotOutput("ageGroupPlot")
-          ),
-          box(
-            title = "Occupation", status = "primary", solidHeader = TRUE, width = 4,
-            plotOutput("occupationPlot")
-          )
+        width = 12, class = "custom-column no-gap",
+        box(
+          title = "Occupation", status = "primary", solidHeader = TRUE, width = 12,
+          plotOutput("unionWiseCasePlot")
+        )
+      ),
+      column(
+        width = 12, class = "custom-column no-gap",
+        box(
+          title = "Case Identification", status = "primary", solidHeader = TRUE, width = 6,
+          plotOutput("caseIdentificationPlot")
         ),
-      ),
-    ),
-    fluidRow(
-      box(
-        title = "Union Wise Case", status = "primary", solidHeader = TRUE,
-        plotOutput("unionWiseCasePlot")
-      ),
-      box(
-        title = "Case Identification", status = "primary", solidHeader = TRUE,
-        plotOutput("caseIdentificationPlot")
-      ),
-      box(
-        title = "Number of LLIN in HH", status = "primary", solidHeader = TRUE,
-        plotOutput("llinPlot")
+        box(
+          title = "LLIN", status = "primary", solidHeader = TRUE, width = 6,
+          plotOutput("llinPlot")
+        )
       )
     )
+  )
+)
+
   )
 )
 
