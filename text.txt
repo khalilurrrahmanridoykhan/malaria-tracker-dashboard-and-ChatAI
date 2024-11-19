@@ -1,0 +1,2 @@
+chmod +x style_r.sh
+./style_r.sh /Users/khalilur/Documents/GSI/MalariaTracker/app.r

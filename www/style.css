@@ -1,0 +1,81 @@
+/* style.css */
+
+/* Header styling */
+.main-header .logo {
+    background-color: #3BBC9C !important;
+    color: white !important;
+    font-size: 19px !important;
+    text-align: justify !important;
+    font-weight: 500 !important;
+  }
+  .main-header .navbar {
+    background-color: #3BBC9C !important;
+  }
+
+  /* Sidebar styling */
+  .main-sidebar {
+    background-color: #c9e8e2 !important;
+  }
+  .sidebar-menu > li.active > a {
+    background-color: #3BBC9C !important;
+    color: white !important;
+  }
+  .sidebar-menu > li:hover > a {
+    background-color: #3BBC9C !important;
+    color: white !important;
+  }
+  .sidebar-menu > li > a {
+    color: #333 !important;
+  }
+  .sidebar-toggle {
+    display: none !important;
+  }  /* This hides the toggle button */
+
+  .value-box-custom {
+    display: inline-block;
+    width: 11%;
+    text-align: center;
+    padding: 20px;
+    margin: 5px;
+    border-radius: 10px;
+    background-color: #5cb85c !important;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  }
+
+  .value-box-custom .icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+  }
+
+  .value-box-custom .value {
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .value-box-custom .label {
+    font-size: 16px;
+    font-weight: lighter;
+  }
+
+  .custom-column {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+  }
+
+  .custom-column>div {
+    padding: 2px !important;
+
+  }
+
+  .fixed-height {
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .custom-column .box {
+    height: 200px; /* Explicit height for each box */
+  }
