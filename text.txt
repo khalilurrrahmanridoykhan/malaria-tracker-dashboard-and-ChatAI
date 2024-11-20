@@ -1,2 +1,10 @@
 chmod +x style_r.sh
 ./style_r.sh /Users/khalilur/Documents/GSI/MalariaTracker/app.r
+venv/bin/activate
+
+pip install pandas
+pip install numpy
+pip install matplotlib
+pip install seaborn
+pip install scikit-learn
+pip install scikit-plot
