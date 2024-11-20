@@ -3,28 +3,114 @@ library(shinydashboard)
 library(leaflet)
 library(plotly)
 library(DT)
+library(shinyWidgets)
 
 ui <- dashboardPage(
   dashboardHeader(
     title = "Community Malaria Tracker: An Integrated Solution for Malaria Elimination",
     titleWidth = 1000 # Adjust title width to show full title
   ),
-  dashboardSidebar(
-    width = 300,
-    sidebarMenu(
-      dateRangeInput("dateRange",
-        label = "Date range input: yyyy-mm-dd",
-        start = Sys.Date() - 365, end = Sys.Date()
+dashboardSidebar(
+  width = 300,
+  sidebarMenu(
+    # Division Dropdown
+    pickerInput(
+      inputId = "division",
+      label = "DIVISION:",
+      choices = c("Chattogram"),
+      selected = "Chattogram",
+      options = list(
+        `actions-box` = TRUE,
+        `selected-text-format` = "count > 1",
+        `count-selected-text` = "{0} selected",
+        `none-selected-text` = "Select Division"
       ),
-      tags$div(
-        "Last Updated Date",
-        tags$br(),
-        "KOBO: 2024-09-30",
-        tags$br(),
-        "SMS: 2023-10-04"
-      )
+      multiple = TRUE
+    ),
+
+    # District Dropdown
+    pickerInput(
+      inputId = "district",
+      label = "DISTRICT:",
+      choices = c("Chattogram"),
+      selected = "Chattogram",
+      options = list(
+        `actions-box` = TRUE,
+        `selected-text-format` = "count > 1",
+        `count-selected-text` = "{0} selected",
+        `none-selected-text` = "Select District"
+      ),
+      multiple = TRUE
+    ),
+
+    # Upazila Multi-Select Dropdown
+    pickerInput(
+      inputId = "upazila",
+      label = "UPAZILA:",
+      choices = c("Alikadam", "Bandarban Sadar", "Lama", "Naikkhyongchhari", "Rowangchhari"),
+      selected = c("Alikadam", "Bandarban Sadar", "Lama", "Naikkhyongchhari", "Rowangchhari"),
+      options = list(
+        `actions-box` = TRUE,
+        `selected-text-format` = "count > 1",
+        `count-selected-text` = "{0} selected",
+        `none-selected-text` = "Select Upazila"
+      ),
+      multiple = TRUE
+    ),
+
+    # Union Multi-Select Dropdown
+    pickerInput(
+      inputId = "union",
+      label = "UNION:",
+      choices = c(
+        "Alekkhyong", "Alikadam", "Aziznagar", "Baishari", "Bandarban Pourasabha",
+        "Bandarban Sadar", "Chaikkhyong", "Dochhari", "Faitang", "Fansiakhali",
+        "Gajalia", "Ghumdhum", "Jamchhari", "Kuhalong", "Kurukpata",
+        "Lama Pourasabha", "Lama Sadar", "Naikkhyongchhari Sadar", "Nayapara",
+        "Nowapatang", "Rajbila", "Rowangchhari Sadar", "Rupasipara", "Sarai",
+        "Sonaichhari", "Sualak", "Tankabati", "Taracha"
+      ),
+      selected = c(
+        "Alekkhyong", "Alikadam", "Aziznagar", "Baishari", "Bandarban Pourasabha",
+        "Bandarban Sadar", "Chaikkhyong", "Dochhari", "Faitang", "Fansiakhali",
+        "Gajalia", "Ghumdhum", "Jamchhari", "Kuhalong", "Kurukpata",
+        "Lama Pourasabha", "Lama Sadar", "Naikkhyongchhari Sadar", "Nayapara",
+        "Nowapatang", "Rajbila", "Rowangchhari Sadar", "Rupasipara", "Sarai",
+        "Sonaichhari", "Sualak", "Tankabati", "Taracha"
+      ),
+      options = list(
+        `actions-box` = TRUE,
+        `selected-text-format` = "count > 1",
+        `count-selected-text` = "{0} selected",
+        `none-selected-text` = "Select Union"
+      ),
+      multiple = TRUE
+    ),
+
+    # Date Range Input
+    dateRangeInput(
+      inputId = "date_range",
+      label = "DATE:",
+      start = "2020-04-18",
+      end = Sys.Date(),
+      format = "yyyy-mm-dd"
+    ),
+
+    # Reset Button
+    actionButton("reset_date", "Reset date"),
+
+    # Last Updated Date Info
+    tags$div(
+      style = "margin-top: 20px;",
+      tags$strong("Last Updated Date"),
+      tags$br(),
+      "KOBO: 2024-09-30",
+      tags$br(),
+      "SMS: 2023-10-04"
     )
-  ),
+  )
+)
+,
   dashboardBody(
     tags$head(
       tags$link(rel = "stylesheet", type = "text/css", href = "style.css"),
@@ -112,55 +198,54 @@ ui <- dashboardPage(
         )
       )
     ),
-fluidRow(
-  column(
-    width = 6, class = "no-gap mapclumn", # Map column remains fixed
-    box(
-      title = "Map", status = "primary", solidHeader = TRUE, width = 12,
-      leafletOutput("map", height = 500)
-    )
-  ),
-  column(
-    width = 6, class = "scrollable-column", # Apply custom class for scrollable behavior
-    div(
-      style = "height: 535px; overflow-y: auto;", # Set height and enable vertical scrolling
+    fluidRow(
       column(
-        width = 12, class = "custom-column no-gap",
+        width = 6, class = "no-gap mapclumn", # Map column remains fixed
         box(
-          title = "Race", status = "primary", solidHeader = TRUE, width = 4,
-          plotOutput("racePlot")
-        ),
-        box(
-          title = "Age Group", status = "primary", solidHeader = TRUE, width = 4,
-          plotOutput("ageGroupPlot")
-        ),
-        box(
-          title = "Occupation", status = "primary", solidHeader = TRUE, width = 4,
-          plotOutput("occupationPlot")
+          title = "Map", status = "primary", solidHeader = TRUE, width = 12,
+          leafletOutput("map", height = 500)
         )
       ),
       column(
-        width = 12, class = "custom-column no-gap",
-        box(
-          title = "Occupation", status = "primary", solidHeader = TRUE, width = 12,
-          plotOutput("unionWiseCasePlot")
-        )
-      ),
-      column(
-        width = 12, class = "custom-column no-gap",
-        box(
-          title = "Case Identification", status = "primary", solidHeader = TRUE, width = 6,
-          plotOutput("caseIdentificationPlot")
-        ),
-        box(
-          title = "LLIN", status = "primary", solidHeader = TRUE, width = 6,
-          plotOutput("llinPlot")
+        width = 6, class = "scrollable-column", # Apply custom class for scrollable behavior
+        div(
+          style = "height: 535px; overflow-y: auto;", # Set height and enable vertical scrolling
+          column(
+            width = 12, class = "custom-column no-gap",
+            box(
+              title = "Race", status = "primary", solidHeader = TRUE, width = 4,
+              plotOutput("racePlot")
+            ),
+            box(
+              title = "Age Group", status = "primary", solidHeader = TRUE, width = 4,
+              plotOutput("ageGroupPlot")
+            ),
+            box(
+              title = "Occupation", status = "primary", solidHeader = TRUE, width = 4,
+              plotOutput("occupationPlot")
+            )
+          ),
+          column(
+            width = 12, class = "custom-column no-gap",
+            box(
+              title = "Occupation", status = "primary", solidHeader = TRUE, width = 12,
+              plotOutput("unionWiseCasePlot")
+            )
+          ),
+          column(
+            width = 12, class = "custom-column no-gap",
+            box(
+              title = "Case Identification", status = "primary", solidHeader = TRUE, width = 6,
+              plotOutput("caseIdentificationPlot")
+            ),
+            box(
+              title = "LLIN", status = "primary", solidHeader = TRUE, width = 6,
+              plotOutput("llinPlot")
+            )
+          )
         )
       )
     )
-  )
-)
-
   )
 )
 
