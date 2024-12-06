@@ -5,12 +5,10 @@ library(plotly)
 library(DT)
 library(shinyWidgets)
 
-df <- read.csv("./data/updated_dataset.csv")
-
 ui <- dashboardPage(
   dashboardHeader(
     title = "Community Malaria Tracker: An Integrated Solution for Malaria Elimination",
-    titleWidth = 1000
+    titleWidth = 1000 # Adjust title width to show full title
   ),
   dashboardSidebar(
     width = 300,
