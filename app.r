@@ -210,69 +210,85 @@ server <- function(input, output, session) {
   # Update dateRangeInput with extracted dates
   updateDateRangeInput(session, "date_range", start = min_date, end = max_date)
 
-  # Calculate counts for each category
-  count_kobo <- nrow(filter(df, Type == "kobo"))
-  count_sms <- nrow(filter(df, Type == "sms"))
-  count_pv <- nrow(filter(df, Type_of_disease == "PV"))
-  count_pf <- nrow(filter(df, Type_of_disease == "PF"))
-  count_mixed <- nrow(filter(df, Type_of_disease == "Mixed"))
-  count_infected_villages <- nrow(distinct(filter(df, !is.na(Ward)), Ward))
-  count_male <- nrow(filter(df, Patient_Gender == "Male"))
-  count_female <- nrow(filter(df, Patient_Gender == "Female"))
-
-print(count_infected_villages)
-  # Create value boxes
-  output$valueBoxes <- renderUI({
-    fluidRow(
-      div(
-        class = "value-box-custom",
-        icon("mobile-alt", class = "icon"),
-        div(count_kobo, class = "value"),
-        div("KOBO", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("sms", class = "icon"),
-        div(count_sms, class = "value"),
-        div("SMS", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("stethoscope", class = "icon"),
-        div(count_pv, class = "value"),
-        div("PV", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("stethoscope", class = "icon"),
-        div(count_pf, class = "value"),
-        div("PF", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("cogs", class = "icon"),
-        div(count_mixed, class = "value"),
-        div("MIXED", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("map-marker-alt", class = "icon"),
-        div(count_infected_villages, class = "value"),
-        div("Infected Villages", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("male", class = "icon"),
-        div(count_male, class = "value"),
-        div("Male", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("female", class = "icon"),
-        div(count_female, class = "value"),
-        div("Female", class = "label")
+  observe({
+    # Filter dataset based on user input
+    filtered_df <- df %>%
+      filter(
+        DIVISION %in% input$division,
+        DISTRICT %in% input$district,
+        UPAZILA %in% input$upazila,
+        UNION %in% input$union,
+        submission_time >= input$date_range[1] & submission_time <= input$date_range[2]
       )
-    )
+
+    # Calculate counts for each category
+    count_kobo <- nrow(filter(filtered_df, Type == "kobo"))
+    count_sms <- nrow(filter(filtered_df, Type == "sms"))
+    count_pv <- nrow(filter(filtered_df, Type_of_disease == "PV"))
+    count_pf <- nrow(filter(filtered_df, Type_of_disease == "PF"))
+    count_mixed <- nrow(filter(filtered_df, Type_of_disease == "Mixed"))
+    count_infected_villages <- nrow(distinct(filter(filtered_df, !is.na(Ward)), Ward))
+    count_male <- nrow(filter(filtered_df, Patient_Gender == "Male"))
+    count_female <- nrow(filter(filtered_df, Patient_Gender == "Female"))
+
+    # Create value boxes
+    output$valueBoxes <- renderUI({
+      fluidRow(
+        div(
+          class = "value-box-custom",
+          icon("mobile-alt", class = "icon"),
+          div(count_kobo, class = "value"),
+          div("KOBO", class = "label")
+        ),
+        div(
+          class = "value-box-custom",
+          icon("sms", class = "icon"),
+          div(count_sms, class = "value"),
+          div("SMS", class = "label")
+        ),
+        div(
+          class = "value-box-custom",
+          icon("stethoscope", class = "icon"),
+          div(count_pv, class = "value"),
+          div("PV", class = "label")
+        ),
+        div(
+          class = "value-box-custom",
+          icon("stethoscope", class = "icon"),
+          div(count_pf, class = "value"),
+          div("PF", class = "label")
+        ),
+        div(
+          class = "value-box-custom",
+          icon("cogs", class = "icon"),
+          div(count_mixed, class = "value"),
+          div("MIXED", class = "label")
+        ),
+        div(
+          class = "value-box-custom",
+          icon("map-marker-alt", class = "icon"),
+          div(count_infected_villages, class = "value"),
+          div("Infected Villages", class = "label")
+        ),
+        div(
+          class = "value-box-custom",
+          icon("male", class = "icon"),
+          div(count_male, class = "value"),
+          div("Male", class = "label")
+        ),
+        div(
+          class = "value-box-custom",
+          icon("female", class = "icon"),
+          div(count_female, class = "value"),
+          div("Female", class = "label")
+        )
+      )
+    })
+  })
+
+  # Reset date button functionality
+  observeEvent(input$reset_date, {
+    updateDateRangeInput(session, "date_range", start = min_date, end = max_date)
   })
 
   # Add your plots and map rendering code here
@@ -284,3 +300,4 @@ print(count_infected_villages)
 }
 
 shinyApp(ui, server)
+
