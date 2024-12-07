@@ -210,9 +210,9 @@ server <- function(input, output, session) {
   # Update dateRangeInput with extracted dates
   updateDateRangeInput(session, "date_range", start = min_date, end = max_date)
 
-  observe({
-    # Filter dataset based on user input
-    filtered_df <- df %>%
+  # Define filtered_df as a reactive expression
+  filtered_df <- reactive({
+    df %>%
       filter(
         DIVISION %in% input$division,
         DISTRICT %in% input$district,
@@ -220,16 +220,18 @@ server <- function(input, output, session) {
         UNION %in% input$union,
         submission_time >= input$date_range[1] & submission_time <= input$date_range[2]
       )
+  })
 
+  observe({
     # Calculate counts for each category
-    count_kobo <- nrow(filter(filtered_df, Type == "kobo"))
-    count_sms <- nrow(filter(filtered_df, Type == "sms"))
-    count_pv <- nrow(filter(filtered_df, Type_of_disease == "PV"))
-    count_pf <- nrow(filter(filtered_df, Type_of_disease == "PF"))
-    count_mixed <- nrow(filter(filtered_df, Type_of_disease == "Mixed"))
-    count_infected_villages <- nrow(distinct(filter(filtered_df, !is.na(Ward)), Ward))
-    count_male <- nrow(filter(filtered_df, Patient_Gender == "Male"))
-    count_female <- nrow(filter(filtered_df, Patient_Gender == "Female"))
+    count_kobo <- nrow(filter(filtered_df(), Type == "kobo"))
+    count_sms <- nrow(filter(filtered_df(), Type == "sms"))
+    count_pv <- nrow(filter(filtered_df(), Type_of_disease == "PV"))
+    count_pf <- nrow(filter(filtered_df(), Type_of_disease == "PF"))
+    count_mixed <- nrow(filter(filtered_df(), Type_of_disease == "Mixed"))
+    count_infected_villages <- nrow(distinct(filter(filtered_df(), !is.na(Ward)), Ward))
+    count_male <- nrow(filter(filtered_df(), Patient_Gender == "Male"))
+    count_female <- nrow(filter(filtered_df(), Patient_Gender == "Female"))
 
     # Create value boxes
     output$valueBoxes <- renderUI({
@@ -292,12 +294,25 @@ server <- function(input, output, session) {
   })
 
   # Add your plots and map rendering code here
-  # Example for one plot:
+  # Type of Test Plot
   output$typeOfTestPlot <- renderPlot({
-    # Add your plotting code here
+    type_of_test_counts <- filtered_df() %>%
+      count(Type_of_test) %>%
+      arrange(n)
+
+    par(mar = c(20, 4, 4, 2)) # Adjust margins to fit the plot within the width
+    barplot(
+      type_of_test_counts$n,
+      names.arg = type_of_test_counts$Type_of_test,
+      horiz = TRUE,
+      col = "lightblue",
+      cex.names = 0.7, # Adjust the size of the labels to fit
+      cex = 0.7, # Adjust the size of the bars to fit
+      # xlim = c(0, max(type_of_test_counts$n) * 5.1), # Set the x-axis limit to show all bars
+    )
   })
+
   # Similarly, add the rest of the plots and map
 }
 
 shinyApp(ui, server)
-
