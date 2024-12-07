@@ -4,6 +4,7 @@ library(leaflet)
 library(plotly)
 library(DT)
 library(shinyWidgets)
+library(dplyr)
 
 df <- read.csv("./data/updated_dataset.csv")
 
@@ -19,8 +20,7 @@ ui <- dashboardPage(
       pickerInput(
         inputId = "division",
         label = "DIVISION:",
-        choices = c("Chattogram"),
-        selected = "Chattogram",
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -34,8 +34,7 @@ ui <- dashboardPage(
       pickerInput(
         inputId = "district",
         label = "DISTRICT:",
-        choices = c("Chattogram"),
-        selected = "Chattogram",
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -49,8 +48,7 @@ ui <- dashboardPage(
       pickerInput(
         inputId = "upazila",
         label = "UPAZILA:",
-        choices = c("Alikadam", "Bandarban Sadar", "Lama", "Naikkhyongchhari", "Rowangchhari"),
-        selected = c("Alikadam", "Bandarban Sadar", "Lama", "Naikkhyongchhari", "Rowangchhari"),
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -64,22 +62,7 @@ ui <- dashboardPage(
       pickerInput(
         inputId = "union",
         label = "UNION:",
-        choices = c(
-          "Alekkhyong", "Alikadam", "Aziznagar", "Baishari", "Bandarban Pourasabha",
-          "Bandarban Sadar", "Chaikkhyong", "Dochhari", "Faitang", "Fansiakhali",
-          "Gajalia", "Ghumdhum", "Jamchhari", "Kuhalong", "Kurukpata",
-          "Lama Pourasabha", "Lama Sadar", "Naikkhyongchhari Sadar", "Nayapara",
-          "Nowapatang", "Rajbila", "Rowangchhari Sadar", "Rupasipara", "Sarai",
-          "Sonaichhari", "Sualak", "Tankabati", "Taracha"
-        ),
-        selected = c(
-          "Alekkhyong", "Alikadam", "Aziznagar", "Baishari", "Bandarban Pourasabha",
-          "Bandarban Sadar", "Chaikkhyong", "Dochhari", "Faitang", "Fansiakhali",
-          "Gajalia", "Ghumdhum", "Jamchhari", "Kuhalong", "Kurukpata",
-          "Lama Pourasabha", "Lama Sadar", "Naikkhyongchhari Sadar", "Nayapara",
-          "Nowapatang", "Rajbila", "Rowangchhari Sadar", "Rupasipara", "Sarai",
-          "Sonaichhari", "Sualak", "Tankabati", "Taracha"
-        ),
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -93,8 +76,8 @@ ui <- dashboardPage(
       dateRangeInput(
         inputId = "date_range",
         label = "DATE:",
-        start = "2020-04-18",
-        end = Sys.Date(),
+        start = NULL, # Initially set to NULL, will be updated in server
+        end = NULL,   # Initially set to NULL, will be updated in server
         format = "yyyy-mm-dd"
       ),
 
@@ -250,31 +233,29 @@ ui <- dashboardPage(
   )
 )
 
-server <- function(input, output) {
-  output$koboBox <- renderValueBox({
-    valueBox(2563, "KOBO", icon = icon("mobile-alt"), color = "green")
-  })
-  output$smsBox <- renderValueBox({
-    valueBox(34, "SMS", icon = icon("sms"), color = "green")
-  })
-  output$pvBox <- renderValueBox({
-    valueBox(1451, "PV", icon = icon("stethoscope"), color = "green")
-  })
-  output$pfBox <- renderValueBox({
-    valueBox(1108, "PF", icon = icon("stethoscope"), color = "green")
-  })
-  output$mixedBox <- renderValueBox({
-    valueBox(38, "MIXED", icon = icon("cogs"), color = "green")
-  })
-  output$infectedVillagesBox <- renderValueBox({
-    valueBox(436, "Infected Villages", icon = icon("map-marker-alt"), color = "green")
-  })
-  output$maleBox <- renderValueBox({
-    valueBox(1614, "Male", icon = icon("male"), color = "green")
-  })
-  output$femaleBox <- renderValueBox({
-    valueBox(983, "Female", icon = icon("female"), color = "green")
-  })
+server <- function(input, output, session) {
+  # Read the dataset
+  df <- read.csv("./data/updated_dataset.csv")
+
+  # Extract distinct values for each column
+  divisions <- unique(df$DIVISION)
+  districts <- unique(df$DISTRICT)
+  upazilas <- unique(df$UPAZILA)
+  unions <- unique(df$UNION)
+
+  # Update pickerInput choices
+  updatePickerInput(session, "division", choices = divisions, selected = divisions)
+  updatePickerInput(session, "district", choices = districts, selected = districts)
+  updatePickerInput(session, "upazila", choices = upazilas, selected = upazilas)
+  updatePickerInput(session, "union", choices = unions, selected = unions)
+
+  # Extract the first and last dates from the submission_time column
+  min_date <- min(df$submission_time, na.rm = TRUE)
+  max_date <- max(df$submission_time, na.rm = TRUE)
+
+  # Update dateRangeInput with extracted dates
+  updateDateRangeInput(session, "date_range", start = min_date, end = max_date)
+
   # Add your plots and map rendering code here
   # Example for one plot:
   output$typeOfTestPlot <- renderPlot({
