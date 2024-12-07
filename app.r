@@ -102,54 +102,7 @@ ui <- dashboardPage(
       tags$script(src = "script.js")
     ),
     fluidRow(
-      div(
-        class = "value-box-custom",
-        icon("mobile-alt", class = "icon"),
-        div("2563", class = "value"),
-        div("KOBO", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("sms", class = "icon"),
-        div("34", class = "value"),
-        div("SMS", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("stethoscope", class = "icon"),
-        div("1451", class = "value"),
-        div("PV", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("stethoscope", class = "icon"),
-        div("1108", class = "value"),
-        div("PF", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("cogs", class = "icon"),
-        div("38", class = "value"),
-        div("MIXED", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("map-marker-alt", class = "icon"),
-        div("436", class = "value"),
-        div("Infected Villages", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("male", class = "icon"),
-        div("1614", class = "value"),
-        div("Male", class = "label")
-      ),
-      div(
-        class = "value-box-custom",
-        icon("female", class = "icon"),
-        div("983", class = "value"),
-        div("Female", class = "label")
-      )
+      uiOutput("valueBoxes")
     ),
     fluidRow(
       class = "equal-height",
@@ -236,6 +189,7 @@ ui <- dashboardPage(
 server <- function(input, output, session) {
   # Read the dataset
   df <- read.csv("./data/updated_dataset.csv")
+  df$submission_time <- as.Date(df$submission_time, format = "%Y-%m-%d")
 
   # Extract distinct values for each column
   divisions <- unique(df$DIVISION)
@@ -255,6 +209,71 @@ server <- function(input, output, session) {
 
   # Update dateRangeInput with extracted dates
   updateDateRangeInput(session, "date_range", start = min_date, end = max_date)
+
+  # Calculate counts for each category
+  count_kobo <- nrow(filter(df, Type == "kobo"))
+  count_sms <- nrow(filter(df, Type == "sms"))
+  count_pv <- nrow(filter(df, Type_of_disease == "PV"))
+  count_pf <- nrow(filter(df, Type_of_disease == "PF"))
+  count_mixed <- nrow(filter(df, Type_of_disease == "Mixed"))
+  count_infected_villages <- nrow(distinct(filter(df, !is.na(Ward)), Ward))
+  count_male <- nrow(filter(df, Patient_Gender == "Male"))
+  count_female <- nrow(filter(df, Patient_Gender == "Female"))
+
+print(count_infected_villages)
+  # Create value boxes
+  output$valueBoxes <- renderUI({
+    fluidRow(
+      div(
+        class = "value-box-custom",
+        icon("mobile-alt", class = "icon"),
+        div(count_kobo, class = "value"),
+        div("KOBO", class = "label")
+      ),
+      div(
+        class = "value-box-custom",
+        icon("sms", class = "icon"),
+        div(count_sms, class = "value"),
+        div("SMS", class = "label")
+      ),
+      div(
+        class = "value-box-custom",
+        icon("stethoscope", class = "icon"),
+        div(count_pv, class = "value"),
+        div("PV", class = "label")
+      ),
+      div(
+        class = "value-box-custom",
+        icon("stethoscope", class = "icon"),
+        div(count_pf, class = "value"),
+        div("PF", class = "label")
+      ),
+      div(
+        class = "value-box-custom",
+        icon("cogs", class = "icon"),
+        div(count_mixed, class = "value"),
+        div("MIXED", class = "label")
+      ),
+      div(
+        class = "value-box-custom",
+        icon("map-marker-alt", class = "icon"),
+        div(count_infected_villages, class = "value"),
+        div("Infected Villages", class = "label")
+      ),
+      div(
+        class = "value-box-custom",
+        icon("male", class = "icon"),
+        div(count_male, class = "value"),
+        div("Male", class = "label")
+      ),
+      div(
+        class = "value-box-custom",
+        icon("female", class = "icon"),
+        div(count_female, class = "value"),
+        div("Female", class = "label")
+      )
+    )
+  })
 
   # Add your plots and map rendering code here
   # Example for one plot:
