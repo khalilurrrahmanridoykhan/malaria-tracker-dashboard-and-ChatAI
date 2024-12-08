@@ -6,6 +6,8 @@ library(DT)
 library(shinyWidgets)
 library(dplyr)
 
+utils::globalVariables(c("Type_of_test"))
+
 df <- read.csv("./data/updated_dataset.csv")
 
 ui <- dashboardPage(
@@ -300,17 +302,18 @@ server <- function(input, output, session) {
       count(Type_of_test) %>%
       arrange(n)
 
-    par(mar = c(20, 4, 4, 2)) # Adjust margins to fit the plot within the width
+    # Adjust margins to fit the plot within the width
+    par(mar = c(3, 0, 2, 2)) # Reduce bottom margin
+
     barplot(
       type_of_test_counts$n,
       names.arg = type_of_test_counts$Type_of_test,
       horiz = TRUE,
-      col = "lightblue",
+      col = "#c9e8e2",
       cex.names = 0.7, # Adjust the size of the labels to fit
-      cex = 0.7, # Adjust the size of the bars to fit
-      # xlim = c(0, max(type_of_test_counts$n) * 5.1), # Set the x-axis limit to show all bars
+      cex.axis = 0.8 # Adjust the size of the axis labels to fit
     )
-  })
+  }, width = 325, height = 145) # Adjust width and height as needed
 
   # Similarly, add the rest of the plots and map
 }

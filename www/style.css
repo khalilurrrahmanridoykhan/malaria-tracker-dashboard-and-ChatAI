@@ -103,3 +103,13 @@
   height: 500px;
   overflow-y: auto;
 }
+.box.box-primary {
+  border-color: #5CB85C !important;
+}
+.box.box-primary > .box-header {
+  background: #5CB85C !important;
+  color: #fff !important
+}
+#valueBoxes {
+  margin-left: 14px !important;
+  }
