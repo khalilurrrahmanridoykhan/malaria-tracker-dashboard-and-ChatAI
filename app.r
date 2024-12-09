@@ -315,7 +315,55 @@ server <- function(input, output, session) {
     )
   }, width = 325, height = 145) # Adjust width and height as needed
 
-  # Similarly, add the rest of the plots and map
+ # Month Wise Case Plot
+output$monthWiseCasePlot <- renderPlot({
+  month_wise_counts <- filtered_df() %>%
+    mutate(month = format(submission_time, "%Y-%m")) %>%
+    count(month) %>%
+    arrange(month)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(3, 0, 2, 2)) # Reduce bottom margin
+
+  barplot(
+    month_wise_counts$n,
+    names.arg = month_wise_counts$month,
+    horiz = TRUE,
+    col = "#c9e8e2",
+    cex.names = 0.7, # Adjust the size of the labels to fit
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+
+  )
+}, width = 325, height = 145)
+output$delayDiagnosisTreatmentPlot <- renderPlot({
+  delay_data <- filtered_df() %>%
+    mutate(
+      Diagnosis_Date = as.Date(Date_of_doing_test, format = "%Y-%m-%d"),
+      Treatment_Date = as.Date(Date_of_Initiation_Treatment, format = "%Y-%m-%d"),
+      Delay = as.numeric(difftime(Treatment_Date, Diagnosis_Date, units = "days"))
+    ) %>%
+    filter(!is.na(Delay))
+
+  delay_counts <- delay_data %>%
+    count(Delay) %>%
+    arrange(Delay)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(3, 0, 2, 2)) # Reduce bottom margin
+
+  barplot(
+    delay_counts$n,
+    names.arg = delay_counts$Delay,
+    horiz = TRUE,
+    col = "#c9e8e2",
+    cex.names = 0.7, # Adjust the size of the labels to fit
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+
+  )
+}, width = 325, height = 145)
+# in my dataset has a column name = Date_of_doing_test for Diagnosis date and column name = Date_of_Initiation_Treatment for Treatment date. calclate Delay Between Diagnosis & Treatment here. And show as the typeOfTestPlot in the delayDiagnosisSubmissionPlot
+
+
 }
 
 shinyApp(ui, server)
