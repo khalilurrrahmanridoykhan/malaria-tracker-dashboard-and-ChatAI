@@ -5,6 +5,9 @@ library(plotly)
 library(DT)
 library(shinyWidgets)
 library(dplyr)
+library(sf)
+library(leaflet.extras)
+
 
 utils::globalVariables(c("Type_of_test"))
 
@@ -303,7 +306,7 @@ server <- function(input, output, session) {
       arrange(n)
 
     # Adjust margins to fit the plot within the width
-    par(mar = c(3, 0, 2, 2)) # Reduce bottom margin
+    par(mar = c(3, 0, 0, 2)) # Reduce bottom margin
 
     barplot(
       type_of_test_counts$n,
@@ -316,25 +319,36 @@ server <- function(input, output, session) {
   }, width = 325, height = 145) # Adjust width and height as needed
 
  # Month Wise Case Plot
+
 output$monthWiseCasePlot <- renderPlot({
   month_wise_counts <- filtered_df() %>%
-    mutate(month = format(submission_time, "%Y-%m")) %>%
+    mutate(month = format(submission_time, "%m")) %>%
     count(month) %>%
     arrange(month)
 
+  # Define month labels
+  month_labels <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+
   # Adjust margins to fit the plot within the width
-  par(mar = c(3, 0, 2, 2)) # Reduce bottom margin
+  par(mar = c(5, 4, 0, 2) * 0.4) # Adjust margins for better fit, top margin set to 0
 
   barplot(
     month_wise_counts$n,
-    names.arg = month_wise_counts$month,
-    horiz = TRUE,
+    names.arg = month_labels[as.numeric(month_wise_counts$month)],
     col = "#c9e8e2",
     cex.names = 0.7, # Adjust the size of the labels to fit
     cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
+    ylim = c(0, max(month_wise_counts$n) * 1.2),
+    axes = FALSE # Remove the bar scale
+  ) -> bp
 
-  )
+  # Add text labels to the bars
+  text(bp, month_wise_counts$n, labels = month_wise_counts$n, pos = 3, cex = 0.8)
 }, width = 325, height = 145)
+
+
+
 output$delayDiagnosisTreatmentPlot <- renderPlot({
   delay_data <- filtered_df() %>%
     mutate(
@@ -354,16 +368,71 @@ output$delayDiagnosisTreatmentPlot <- renderPlot({
   barplot(
     delay_counts$n,
     names.arg = delay_counts$Delay,
-    horiz = TRUE,
     col = "#c9e8e2",
     cex.names = 0.7, # Adjust the size of the labels to fit
     cex.axis = 0.8, # Adjust the size of the axis labels to fit
-
   )
 }, width = 325, height = 145)
 # in my dataset has a column name = Date_of_doing_test for Diagnosis date and column name = Date_of_Initiation_Treatment for Treatment date. calclate Delay Between Diagnosis & Treatment here. And show as the typeOfTestPlot in the delayDiagnosisSubmissionPlot
 
+# d
+# Load required libraries for spatial data
 
+# Read the shapefile
+shapefile_path <- "./shap/lamadidar.shp" # Update with the correct path to your shapefile
+shapefile <- st_read(shapefile_path)
+
+# Render the map
+output$map <- renderLeaflet({
+  leaflet() %>%
+    addProviderTiles(providers$CartoDB.Positron) %>%
+    addPolygons(data = shapefile, color = "#444444", weight = 1, smoothFactor = 0.5,
+                opacity = 1.0, fillOpacity = 0.5,
+                highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                    bringToFront = TRUE)) %>%
+    addCircleMarkers(
+      data = filtered_df(),
+      lat = ~latitude,
+      lng = ~longitude,
+      radius = 5,
+      color = ~ifelse(Type_of_disease == "PV", "blue", ifelse(Type_of_disease == "PF", "red", "green")),
+      stroke = FALSE,
+      fillOpacity = 0.8,
+      popup = ~paste("Type of Test:", Type_of_test, "<br>",
+                     "Type of Disease:", Type_of_disease, "<br>",
+                     "Date of Test:", Date_of_doing_test, "<br>",
+                     "Date of Treatment:", Date_of_Initiation_Treatment)
+    ) %>%
+    addFullscreenControl()
+})
+# Create Layer Groups
+output$map <- renderLeaflet({
+  leaflet() %>%
+    addProviderTiles(providers$CartoDB.Positron) %>%
+    addPolygons(data = shapefile, color = "#444444", weight = 1, smoothFactor = 0.5,
+                opacity = 1.0, fillOpacity = 0.5,
+                highlightOptions = highlightOptions(color = "white", weight = 2,
+                                                    bringToFront = TRUE), group = "Shapefile") %>%
+    addCircleMarkers(
+      data = filtered_df(),
+      lat = ~latitude,
+      lng = ~longitude,
+      radius = 5,
+      color = ~ifelse(Type_of_disease == "PV", "blue", ifelse(Type_of_disease == "PF", "red", "green")),
+      stroke = FALSE,
+      fillOpacity = 0.8,
+      popup = ~paste("Type of Test:", Type_of_test, "<br>",
+                     "Type of Disease:", Type_of_disease, "<br>",
+                     "Date of Test:", Date_of_doing_test, "<br>",
+                     "Date of Treatment:", Date_of_Initiation_Treatment),
+      group = "Cases"
+    ) %>%
+    addFullscreenControl() %>%
+    addLayersControl(
+      overlayGroups = c("Shapefile", "Cases"),
+      options = layersControlOptions(collapsed = TRUE)
+    )
+})
 }
 
 shinyApp(ui, server)
