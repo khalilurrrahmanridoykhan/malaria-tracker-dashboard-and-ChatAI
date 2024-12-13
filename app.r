@@ -306,7 +306,7 @@ server <- function(input, output, session) {
       arrange(n)
 
     # Adjust margins to fit the plot within the width
-    par(mar = c(3, 0, 0, 2)) # Reduce bottom margin
+    par(mar = c(0, 2, 0, 2)) # Reduce bottom margin
 
     barplot(
       type_of_test_counts$n,
@@ -314,8 +314,12 @@ server <- function(input, output, session) {
       horiz = TRUE,
       col = "#c9e8e2",
       cex.names = 0.7, # Adjust the size of the labels to fit
-      cex.axis = 0.8 # Adjust the size of the axis labels to fit
-    )
+      cex.axis = 0.8, # Adjust the size of the axis labels to fit
+      axes = FALSE # Remove the axis
+    ) -> bp
+
+    # Add text labels to the bars inside the bins, centered
+    text(type_of_test_counts$n / 2, bp, labels = type_of_test_counts$n, pos = 3, cex = 0.8, col = "black")
   }, width = 325, height = 145) # Adjust width and height as needed
 
  # Month Wise Case Plot
