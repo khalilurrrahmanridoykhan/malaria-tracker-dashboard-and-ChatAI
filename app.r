@@ -145,13 +145,13 @@ ui <- dashboardPage(
         width = 6, class = "no-gap mapclumn", # Map column remains fixed
         box(
           title = "Map", status = "primary", solidHeader = TRUE, width = 12,
-          leafletOutput("map", height = 500)
+          leafletOutput("map", height = 420)
         )
       ),
       column(
         width = 6, class = "scrollable-column", # Apply custom class for scrollable behavior
         div(
-          style = "height: 535px; overflow-y: auto;", # Set height and enable vertical scrolling
+          style = "height: 490px; overflow-y: auto;", # Set height and enable vertical scrolling
           column(
             width = 12, class = "custom-column no-gap",
             box(
