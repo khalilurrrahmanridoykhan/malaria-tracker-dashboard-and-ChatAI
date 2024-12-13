@@ -524,7 +524,55 @@ output$unionWiseCasePlot <- renderPlot({
   text(bp, par("usr")[3] - 0.5, labels = union_counts$UNION, srt = 20, adj = 1, xpd = TRUE, cex = 0.7)
 }, width = 630, height = 145)
 
-## in my dataset has a column name = UPAZILA count it and make a plot, same design as racePlot on the = unionWiseCasePlot
+#
+output$caseIdentificationPlot <- renderPlot({
+  case_identification_counts <- filtered_df() %>%
+    count(Case_identification) %>%
+    arrange(n)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
+
+  barplot(
+    case_identification_counts$n,
+    col = "#c9e8e2",
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, case_identification_counts$n, labels = case_identification_counts$n, pos = 3, cex = 0.8)
+
+  # Rotate bin labels 45 degrees
+  text(bp, par("usr")[3] - 0.5, labels = case_identification_counts$Case_identification, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
+}, width = 320, height = 145)
+
+#
+output$llinPlot <- renderPlot({
+  llin_counts <- filtered_df() %>%
+    count(Number_of_LLIN_House) %>%
+    arrange(n)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
+
+  barplot(
+    llin_counts$n,
+    col = "#c9e8e2",
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, llin_counts$n, labels = llin_counts$n, pos = 3, cex = 0.8)
+
+  # Rotate bin labels 45 degrees
+  text(bp, par("usr")[3] - 0.5, labels = llin_counts$Number_of_LLIN_House, srt = 0, adj = 1, xpd = TRUE, cex = 0.8)
+}, width = 320, height = 145)
+
+## in my dataset has a column name = Number_of_LLIN_House count it and make a plot, same design as racePlot on the = llinPlot
 # in my dataset colum name Date_of_Initiation_Treatment and submission_time. my plat is =  delayDiagnosisSubmissionPlot. make it same as delayDiagnosisTreatmentPlot design and show the data as the delayDiagnosisSubmissionPlot
 # d
 # Load required libraries for spatial data
