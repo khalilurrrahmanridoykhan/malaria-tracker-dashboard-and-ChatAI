@@ -170,7 +170,7 @@ ui <- dashboardPage(
           column(
             width = 12, class = "custom-column no-gap",
             box(
-              title = "Occupation", status = "primary", solidHeader = TRUE, width = 12,
+              title = "Union Wise Case", status = "primary", solidHeader = TRUE, width = 12,
               plotOutput("unionWiseCasePlot")
             )
           ),
@@ -427,6 +427,104 @@ output$delayDiagnosisSubmissionPlot <- renderPlot({
   text(bp, delay_counts$n, labels = delay_counts$n, pos = 3, cex = 0.8)
 }, width = 325, height = 145)
 
+#
+output$racePlot <- renderPlot({
+  race_counts <- filtered_df() %>%
+    count(Race_Group) %>%
+    arrange(n)
+  # print(race_counts)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
+
+  barplot(
+    race_counts$n,
+    col = "#c9e8e2",
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, race_counts$n, labels = race_counts$n, pos = 3, cex = 0.8)
+
+  # Rotate bin labels 45 degrees
+  text(bp, par("usr")[3] - 0.5, labels = race_counts$Race_Group, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
+}, width = 210, height = 145)
+
+#
+output$ageGroupPlot <- renderPlot({
+  agegroup_counts <- filtered_df() %>%
+    count(agegroup) %>%
+    arrange(n)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
+
+  barplot(
+    agegroup_counts$n,
+    col = "#c9e8e2",
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, agegroup_counts$n, labels = agegroup_counts$n, pos = 3, cex = 0.8)
+
+  # Rotate bin labels 45 degrees
+  text(bp, par("usr")[3] - 0.5, labels = agegroup_counts$agegroup, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
+}, width = 210, height = 145)
+
+#
+output$occupationPlot <- renderPlot({
+  occupation_counts <- filtered_df() %>%
+    count(Occupation) %>%
+    arrange(n)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
+
+  barplot(
+    occupation_counts$n,
+    col = "#c9e8e2",
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, occupation_counts$n, labels = occupation_counts$n, pos = 3, cex = 0.8)
+
+  # Rotate bin labels 45 degrees
+  text(bp, par("usr")[3] - 0.5, labels = occupation_counts$Occupation, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
+}, width = 210, height = 145)
+
+#
+output$unionWiseCasePlot <- renderPlot({
+  union_counts <- filtered_df() %>%
+    count(UNION) %>%
+    arrange(n)
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
+
+  barplot(
+    union_counts$n,
+    col = "#c9e8e2",
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, union_counts$n, labels = union_counts$n, pos = 3, cex = 0.8)
+
+  # Rotate bin labels 45 degrees
+  text(bp, par("usr")[3] - 0.5, labels = union_counts$UNION, srt = 20, adj = 1, xpd = TRUE, cex = 0.7)
+}, width = 630, height = 145)
+
+## in my dataset has a column name = UPAZILA count it and make a plot, same design as racePlot on the = unionWiseCasePlot
 # in my dataset colum name Date_of_Initiation_Treatment and submission_time. my plat is =  delayDiagnosisSubmissionPlot. make it same as delayDiagnosisTreatmentPlot design and show the data as the delayDiagnosisSubmissionPlot
 # d
 # Load required libraries for spatial data
