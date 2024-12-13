@@ -330,7 +330,7 @@ output$monthWiseCasePlot <- renderPlot({
   month_labels <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 
   # Adjust margins to fit the plot within the width
-  par(mar = c(5, 4, 0, 2) * 0.4) # Adjust margins for better fit, top margin set to 0
+  par(mar = c(5, 0, 0, 2) * 0.4) # Adjust margins for better fit, top margin set to 0
 
   barplot(
     month_wise_counts$n,
@@ -359,22 +359,75 @@ output$delayDiagnosisTreatmentPlot <- renderPlot({
     filter(!is.na(Delay))
 
   delay_counts <- delay_data %>%
-    count(Delay) %>%
-    arrange(Delay)
+    mutate(
+      Delay_Group = case_when(
+        Delay == 0 ~ "0 days",
+        Delay == 1 ~ "1 day",
+        Delay == 2 ~ "2 days",
+        Delay %in% 3:7 ~ "3-7 days",
+        TRUE ~ "< 7 days"
+      )
+    ) %>%
+    count(Delay_Group) %>%
+    arrange(factor(Delay_Group, levels = c("0 days", "1 day", "2 days", "3-7 days", "< 7 days")))
 
   # Adjust margins to fit the plot within the width
-  par(mar = c(3, 0, 2, 2)) # Reduce bottom margin
+  par(mar = c(5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     delay_counts$n,
-    names.arg = delay_counts$Delay,
+    names.arg = delay_counts$Delay_Group,
     col = "#c9e8e2",
     cex.names = 0.7, # Adjust the size of the labels to fit
     cex.axis = 0.8, # Adjust the size of the axis labels to fit
-  )
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, delay_counts$n, labels = delay_counts$n, pos = 3, cex = 0.8)
 }, width = 325, height = 145)
 # in my dataset has a column name = Date_of_doing_test for Diagnosis date and column name = Date_of_Initiation_Treatment for Treatment date. calclate Delay Between Diagnosis & Treatment here. And show as the typeOfTestPlot in the delayDiagnosisSubmissionPlot
 
+
+output$delayDiagnosisSubmissionPlot <- renderPlot({
+  delay_data <- filtered_df() %>%
+    mutate(
+      Treatment_Date = as.Date(Date_of_Initiation_Treatment, format = "%Y-%m-%d"),
+      Submission_Date = as.Date(submission_time, format = "%Y-%m-%d"),
+      Delay = as.numeric(difftime(Submission_Date, Treatment_Date, units = "days"))
+    ) %>%
+    filter(!is.na(Delay))
+
+  delay_counts <- delay_data %>%
+    mutate(
+      Delay_Group = case_when(
+        Delay == 0 ~ "0 days",
+        Delay == 1 ~ "1 day",
+        Delay == 2 ~ "2 days",
+        Delay %in% 3:7 ~ "3-7 days",
+        TRUE ~ "< 7 days"
+      )
+    ) %>%
+    count(Delay_Group) %>%
+    arrange(factor(Delay_Group, levels = c("0 days", "1 day", "2 days", "3-7 days", "< 7 days")))
+
+  # Adjust margins to fit the plot within the width
+  par(mar = c(5, 0, 0, 2) * 0.4) # Reduce bottom margin
+
+  barplot(
+    delay_counts$n,
+    names.arg = delay_counts$Delay_Group,
+    col = "#c9e8e2",
+    cex.names = 0.7, # Adjust the size of the labels to fit
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    axes = FALSE
+  ) -> bp
+
+  # Add text labels to the bars
+  text(bp, delay_counts$n, labels = delay_counts$n, pos = 3, cex = 0.8)
+}, width = 325, height = 145)
+
+# in my dataset colum name Date_of_Initiation_Treatment and submission_time. my plat is =  delayDiagnosisSubmissionPlot. make it same as delayDiagnosisTreatmentPlot design and show the data as the delayDiagnosisSubmissionPlot
 # d
 # Load required libraries for spatial data
 
