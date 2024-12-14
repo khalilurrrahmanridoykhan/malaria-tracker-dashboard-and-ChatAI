@@ -1,0 +1,10 @@
+name: malariatracker
+title:
+username: malariaapp
+account: malariaapp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13595169
+bundleId:
+url: https://malariaapp.shinyapps.io/malariatracker/
+version: 1

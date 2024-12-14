@@ -21,10 +21,11 @@ ui <- dashboardPage(
   dashboardSidebar(
     width = 300,
     sidebarMenu(
+      # Division Dropdown
       pickerInput(
         inputId = "division",
         label = "DIVISION:",
-        choices = NULL,
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -34,10 +35,11 @@ ui <- dashboardPage(
         multiple = TRUE
       ),
 
+      # District Dropdown
       pickerInput(
         inputId = "district",
         label = "DISTRICT:",
-        choices = NULL,
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -47,10 +49,11 @@ ui <- dashboardPage(
         multiple = TRUE
       ),
 
+      # Upazila Multi-Select Dropdown
       pickerInput(
         inputId = "upazila",
         label = "UPAZILA:",
-        choices = NULL,
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -60,10 +63,11 @@ ui <- dashboardPage(
         multiple = TRUE
       ),
 
+      # Union Multi-Select Dropdown
       pickerInput(
         inputId = "union",
         label = "UNION:",
-        choices = NULL,
+        choices = NULL, # Initially set to NULL, will be updated in server
         options = list(
           `actions-box` = TRUE,
           `selected-text-format` = "count > 1",
@@ -73,14 +77,16 @@ ui <- dashboardPage(
         multiple = TRUE
       ),
 
+      # Date Range Input
       dateRangeInput(
         inputId = "date_range",
         label = "DATE:",
-        start = NULL,
-        end = NULL,
+        start = NULL, # Initially set to NULL, will be updated in server
+        end = NULL,   # Initially set to NULL, will be updated in server
         format = "yyyy-mm-dd"
       ),
 
+      # Reset Button
       actionButton("reset_date", "Reset date"),
       tags$script(HTML('
         $(document).on("click", "#reset_date", function() {
@@ -88,6 +94,7 @@ ui <- dashboardPage(
         });
       ')),
 
+      # Last Updated Date Info
       tags$div(
         style = "margin-top: 20px;",
         tags$strong("Last Updated Date"),
@@ -139,16 +146,16 @@ ui <- dashboardPage(
     ),
     fluidRow(
       column(
-        width = 6, class = "no-gap mapclumn",
+        width = 6, class = "no-gap mapclumn", # Map column remains fixed
         box(
           title = "Map", status = "primary", solidHeader = TRUE, width = 12,
           leafletOutput("map", height = 420)
         )
       ),
       column(
-        width = 6, class = "scrollable-column",
+        width = 6, class = "scrollable-column", # Apply custom class for scrollable behavior
         div(
-          style = "height: 490px; overflow-y: auto;",
+          style = "height: 490px; overflow-y: auto;", # Set height and enable vertical scrolling
           column(
             width = 12, class = "custom-column no-gap",
             box(
@@ -189,24 +196,30 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output, session) {
+  # Read the dataset
   df <- read.csv("./data/updated_dataset.csv")
   df$submission_time <- as.Date(df$submission_time, format = "%Y-%m-%d")
 
+  # Extract distinct values for each column
   divisions <- unique(df$DIVISION)
   districts <- unique(df$DISTRICT)
   upazilas <- unique(df$UPAZILA)
   unions <- unique(df$UNION)
 
+  # Update pickerInput choices
   updatePickerInput(session, "division", choices = divisions, selected = divisions)
   updatePickerInput(session, "district", choices = districts, selected = districts)
   updatePickerInput(session, "upazila", choices = upazilas, selected = upazilas)
   updatePickerInput(session, "union", choices = unions, selected = unions)
 
+  # Extract the first and last dates from the submission_time column
   min_date <- min(df$submission_time, na.rm = TRUE)
   max_date <- max(df$submission_time, na.rm = TRUE)
 
+  # Update dateRangeInput with extracted dates
   updateDateRangeInput(session, "date_range", start = min_date, end = max_date)
 
+  # Define filtered_df as a reactive expression
   filtered_df <- reactive({
     df %>%
       filter(
@@ -219,6 +232,7 @@ server <- function(input, output, session) {
   })
 
   observe({
+    # Calculate counts for each category
     count_kobo <- nrow(filter(filtered_df(), Type == "kobo"))
     count_sms <- nrow(filter(filtered_df(), Type == "sms"))
     count_pv <- nrow(filter(filtered_df(), Type_of_disease == "PV"))
@@ -228,6 +242,7 @@ server <- function(input, output, session) {
     count_male <- nrow(filter(filtered_df(), Patient_Gender == "Male"))
     count_female <- nrow(filter(filtered_df(), Patient_Gender == "Female"))
 
+    # Create value boxes
     output$valueBoxes <- renderUI({
       fluidRow(
         div(
@@ -282,30 +297,36 @@ server <- function(input, output, session) {
     })
   })
 
+  # Reset date button functionality
   observeEvent(input$reset_date, {
     updateDateRangeInput(session, "date_range", start = min_date, end = max_date)
   })
 
+  # Add your plots and map rendering code here
+  # Type of Test Plot
   output$typeOfTestPlot <- renderPlot({
     type_of_test_counts <- filtered_df() %>%
       count(Type_of_test) %>%
       arrange(n)
 
-    par(mar = c(0, 2, 0, 2))
+    # Adjust margins to fit the plot within the width
+    par(mar = c(0, 2, 0, 2)) # Reduce bottom margin
 
     barplot(
       type_of_test_counts$n,
       names.arg = type_of_test_counts$Type_of_test,
       horiz = TRUE,
       col = "#c9e8e2",
-      cex.names = 0.7,
-      cex.axis = 0.8,
-      axes = FALSE
+      cex.names = 0.7, # Adjust the size of the labels to fit
+      cex.axis = 0.8, # Adjust the size of the axis labels to fit
+      axes = FALSE # Remove the axis
     ) -> bp
 
+    # Add text labels to the bars inside the bins, centered
     text(type_of_test_counts$n / 2, bp, labels = type_of_test_counts$n, pos = 3, cex = 0.8, col = "black")
-  }, width = 325, height = 145)
+  }, width = 325, height = 145) # Adjust width and height as needed
 
+ # Month Wise Case Plot
 
 output$monthWiseCasePlot <- renderPlot({
   month_wise_counts <- filtered_df() %>%
@@ -313,21 +334,24 @@ output$monthWiseCasePlot <- renderPlot({
     count(month) %>%
     arrange(month)
 
+  # Define month labels
   month_labels <- c('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
 
-  par(mar = c(5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(5, 0, 0, 2) * 0.4) # Adjust margins for better fit, top margin set to 0
 
   barplot(
     month_wise_counts$n,
     names.arg = month_labels[as.numeric(month_wise_counts$month)],
     col = "#c9e8e2",
-    cex.names = 0.7,
-    cex.axis = 0.8,
-    las = 2,
+    cex.names = 0.7, # Adjust the size of the labels to fit
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
     ylim = c(0, max(month_wise_counts$n) * 1.2),
-    axes = FALSE
+    axes = FALSE # Remove the bar scale
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, month_wise_counts$n, labels = month_wise_counts$n, pos = 3, cex = 0.8)
 }, width = 325, height = 145)
 
@@ -355,19 +379,22 @@ output$delayDiagnosisTreatmentPlot <- renderPlot({
     count(Delay_Group) %>%
     arrange(factor(Delay_Group, levels = c("0 days", "1 day", "2 days", "3-7 days", "< 7 days")))
 
-  par(mar = c(5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     delay_counts$n,
     names.arg = delay_counts$Delay_Group,
     col = "#c9e8e2",
-    cex.names = 0.7,
-    cex.axis = 0.8,
+    cex.names = 0.7, # Adjust the size of the labels to fit
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, delay_counts$n, labels = delay_counts$n, pos = 3, cex = 0.8)
 }, width = 325, height = 145)
+# in my dataset has a column name = Date_of_doing_test for Diagnosis date and column name = Date_of_Initiation_Treatment for Treatment date. calclate Delay Between Diagnosis & Treatment here. And show as the typeOfTestPlot in the delayDiagnosisSubmissionPlot
 
 
 output$delayDiagnosisSubmissionPlot <- renderPlot({
@@ -392,17 +419,19 @@ output$delayDiagnosisSubmissionPlot <- renderPlot({
     count(Delay_Group) %>%
     arrange(factor(Delay_Group, levels = c("0 days", "1 day", "2 days", "3-7 days", "< 7 days")))
 
-  par(mar = c(5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     delay_counts$n,
     names.arg = delay_counts$Delay_Group,
     col = "#c9e8e2",
-    cex.names = 0.7,
-    cex.axis = 0.8,
+    cex.names = 0.7, # Adjust the size of the labels to fit
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, delay_counts$n, labels = delay_counts$n, pos = 3, cex = 0.8)
 }, width = 325, height = 145)
 
@@ -411,125 +440,156 @@ output$racePlot <- renderPlot({
   race_counts <- filtered_df() %>%
     count(Race_Group) %>%
     arrange(n)
+  # print(race_counts)
 
-  par(mar = c(4.5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     race_counts$n,
     col = "#c9e8e2",
-    cex.axis = 0.8,
-    las = 2,
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, race_counts$n, labels = race_counts$n, pos = 3, cex = 0.8)
 
+  # Rotate bin labels 45 degrees
   text(bp, par("usr")[3] - 0.5, labels = race_counts$Race_Group, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
 }, width = 210, height = 145)
 
+#
 output$ageGroupPlot <- renderPlot({
   agegroup_counts <- filtered_df() %>%
     count(agegroup) %>%
     arrange(n)
 
-  par(mar = c(4.5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     agegroup_counts$n,
     col = "#c9e8e2",
-    cex.axis = 0.8,
-    las = 2,
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, agegroup_counts$n, labels = agegroup_counts$n, pos = 3, cex = 0.8)
 
+  # Rotate bin labels 45 degrees
   text(bp, par("usr")[3] - 0.5, labels = agegroup_counts$agegroup, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
 }, width = 210, height = 145)
 
+#
 output$occupationPlot <- renderPlot({
   occupation_counts <- filtered_df() %>%
     count(Occupation) %>%
     arrange(n)
 
-  par(mar = c(4.5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     occupation_counts$n,
     col = "#c9e8e2",
-    cex.axis = 0.8,
-    las = 2,
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, occupation_counts$n, labels = occupation_counts$n, pos = 3, cex = 0.8)
 
+  # Rotate bin labels 45 degrees
   text(bp, par("usr")[3] - 0.5, labels = occupation_counts$Occupation, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
 }, width = 210, height = 145)
 
+#
 output$unionWiseCasePlot <- renderPlot({
   union_counts <- filtered_df() %>%
     count(UNION) %>%
     arrange(n)
 
-  par(mar = c(4.5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     union_counts$n,
     col = "#c9e8e2",
-    cex.axis = 0.8,
-    las = 2,
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, union_counts$n, labels = union_counts$n, pos = 3, cex = 0.8)
 
+  # Rotate bin labels 45 degrees
   text(bp, par("usr")[3] - 0.5, labels = union_counts$UNION, srt = 20, adj = 1, xpd = TRUE, cex = 0.7)
 }, width = 630, height = 145)
 
+#
 output$caseIdentificationPlot <- renderPlot({
   case_identification_counts <- filtered_df() %>%
     count(Case_identification) %>%
     arrange(n)
 
-  par(mar = c(4.5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     case_identification_counts$n,
     col = "#c9e8e2",
-    cex.axis = 0.8,
-    las = 2,
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, case_identification_counts$n, labels = case_identification_counts$n, pos = 3, cex = 0.8)
 
+  # Rotate bin labels 45 degrees
   text(bp, par("usr")[3] - 0.5, labels = case_identification_counts$Case_identification, srt = 55, adj = 1, xpd = TRUE, cex = 0.7)
 }, width = 320, height = 145)
 
+#
 output$llinPlot <- renderPlot({
   llin_counts <- filtered_df() %>%
     count(Number_of_LLIN_House) %>%
     arrange(n)
 
-  par(mar = c(4.5, 0, 0, 2) * 0.4)
+  # Adjust margins to fit the plot within the width
+  par(mar = c(4.5, 0, 0, 2) * 0.4) # Reduce bottom margin
 
   barplot(
     llin_counts$n,
     col = "#c9e8e2",
-    cex.axis = 0.8,
-    las = 2,
+    cex.axis = 0.8, # Adjust the size of the axis labels to fit
+    las = 2, # Make the labels perpendicular to the axis
     axes = FALSE
   ) -> bp
 
+  # Add text labels to the bars
   text(bp, llin_counts$n, labels = llin_counts$n, pos = 3, cex = 0.8)
 
+  # Rotate bin labels 45 degrees
   text(bp, par("usr")[3] - 0.5, labels = llin_counts$Number_of_LLIN_House, srt = 0, adj = 1, xpd = TRUE, cex = 0.8)
 }, width = 320, height = 145)
 
-shapefile_path <- "./shap/lamadidar.shp"
+## in my dataset has a column name = Number_of_LLIN_House count it and make a plot, same design as racePlot on the = llinPlot
+# in my dataset colum name Date_of_Initiation_Treatment and submission_time. my plat is =  delayDiagnosisSubmissionPlot. make it same as delayDiagnosisTreatmentPlot design and show the data as the delayDiagnosisSubmissionPlot
+# d
+# Load required libraries for spatial data
+
+# Read the shapefile
+shapefile_path <- "./shap/lamadidar.shp" # Update with the correct path to your shapefile
 shapefile <- st_read(shapefile_path)
 
+# Render the map
 output$map <- renderLeaflet({
   leaflet() %>%
     addProviderTiles(providers$CartoDB.Positron) %>%
@@ -552,6 +612,7 @@ output$map <- renderLeaflet({
     ) %>%
     addFullscreenControl()
 })
+# Create Layer Groups
 output$map <- renderLeaflet({
   leaflet() %>%
     addProviderTiles(providers$CartoDB.Positron) %>%

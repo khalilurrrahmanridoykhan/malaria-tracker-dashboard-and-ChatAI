@@ -2,3 +2,5 @@
 
 img
 <img src="./malariatracker.png" alt="Malaria Tracker Dashboard" width="600">
+
+
